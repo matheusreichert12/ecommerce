@@ -23,20 +23,20 @@ class _HomeState extends State<Home> {
     Widget image_carousel = new Container(
       height: 200.0,
       child: Carousel(
-        boxFit: BoxFit.cover,
-        images: [
-          AssetImage("assets/c1.jpg"),
-          AssetImage("assets/m1.jpeg"),
-          AssetImage("assets/w3.jpeg"),
-          AssetImage("assets/w4.jpeg"),
-          AssetImage("assets/w1.jpeg"),
-        ],
-        autoplay: true,
-        animationCurve: Curves.fastOutSlowIn,
-        animationDuration: Duration(milliseconds: 1000),
-        dotSize: 4.0,
-        indicatorBgPadding: 2.0,
-      ),
+          boxFit: BoxFit.cover,
+          images: [
+            AssetImage("assets/c1.jpg"),
+            AssetImage("assets/m1.jpeg"),
+            AssetImage("assets/w3.jpeg"),
+            AssetImage("assets/w4.jpeg"),
+            AssetImage("assets/w1.jpeg"),
+          ],
+          autoplay: true,
+          animationCurve: Curves.fastOutSlowIn,
+          animationDuration: Duration(milliseconds: 1000),
+          dotSize: 4.0,
+          indicatorBgPadding: 2.0,
+          dotBgColor: Colors.transparent),
     );
 
     return Scaffold(
@@ -77,35 +77,38 @@ class _HomeState extends State<Home> {
               onTap: () {},
               child: ListTile(
                 title: Text("Home Page"),
-                leading: Icon(Icons.home),
+                leading: Icon(
+                  Icons.home,
+                  color: Colors.red,
+                ),
               ),
             ),
             InkWell(
               onTap: () {},
               child: ListTile(
                 title: Text("Minha Conta"),
-                leading: Icon(Icons.person),
+                leading: Icon(Icons.person, color: Colors.red),
               ),
             ),
             InkWell(
               onTap: () {},
               child: ListTile(
                 title: Text("Minhas Compras"),
-                leading: Icon(Icons.shopping_basket),
+                leading: Icon(Icons.shopping_basket, color: Colors.red),
               ),
             ),
             InkWell(
               onTap: () {},
               child: ListTile(
-                title: Text("Categorias"),
-                leading: Icon(Icons.dashboard),
+                title: Text("Carrinho"),
+                leading: Icon(Icons.shopping_cart, color: Colors.red),
               ),
             ),
             InkWell(
               onTap: () {},
               child: ListTile(
                 title: Text("Favoritos"),
-                leading: Icon(Icons.favorite),
+                leading: Icon(Icons.favorite, color: Colors.red),
               ),
             ),
             Divider(
