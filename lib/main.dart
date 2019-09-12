@@ -1,6 +1,7 @@
 import 'package:carousel_pro/carousel_pro.dart';
 import 'package:ecommerce/components/horizontal_listview.dart';
 import 'package:ecommerce/components/produtos.dart';
+import 'package:ecommerce/pages/carrinho.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -52,7 +53,10 @@ class _HomeState extends State<Home> {
           ),
           IconButton(
             icon: Icon(Icons.shopping_cart),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (context) => Carrinho()));
+            },
           ),
         ],
       ),
@@ -98,7 +102,10 @@ class _HomeState extends State<Home> {
               ),
             ),
             InkWell(
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => Carrinho()));
+              },
               child: ListTile(
                 title: Text("Carrinho"),
                 leading: Icon(Icons.shopping_cart, color: Colors.red),
