@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -6,7 +8,24 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  //final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = new GoogleSignIn();
+
+  Future<FirebaseUser> _sigIn(BuildContext context) async {
+    Scaffold.of(context).showSnackBar(new SnackBar(
+      content: Text("Sign in"),
+    ));
+
+    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken, idToken: googleAuth.idToken,);
+
+    AuthResult userDetails =await _firebaseAuth.signInWithCredential(credential);
+
+  }
 
   final _formKey = GlobalKey<FormState>();
   TextEditingController _emailTextController = TextEditingController();
@@ -18,27 +37,6 @@ class _LoginState extends State<Login> {
   @override
   void initState() {
     super.initState();
-    isSignedIn();
-  }
-
-  void isSignedIn() async {
-    /* setState(() {
-      loading = true;
-    });
-
-    await firebaseAuth.currentUser().then((user) {
-      if (user != null) {
-        setState(() => isLogedin = true);
-      }
-    });
-    if (isLogedin) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Inicial()));
-    }
-
-    setState(() {
-      loading = false;
-    });*/
   }
 
   @override
@@ -122,7 +120,7 @@ class _LoginState extends State<Login> {
                                 child: TextFormField(
                                   controller: _passwordTextController,
                                   keyboardType: TextInputType.text,
-                                   obscureText: true,
+                                  obscureText: true,
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
                                     hintText: "Senha",
@@ -218,4 +216,20 @@ class _LoginState extends State<Login> {
       ),
     );
   }
+}
+
+class UserDetails {
+  final String providerDetails;
+  final String userName;
+  final String photoUrl;
+  final String userEmail;
+  final List<ProviderDetails> providerData;
+
+  UserDetails(this.providerDetails, this.userName, this.photoUrl,
+      this.userEmail, this.providerData);
+}
+
+class ProviderDetails {
+  ProviderDetails(this.providerDetails);
+  final String providerDetails;
 }
