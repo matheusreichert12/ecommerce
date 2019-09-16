@@ -1,6 +1,9 @@
+import 'package:atual_ecommerce/criar_conta.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -8,40 +11,104 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = new GoogleSignIn();
+  final _formKey = GlobalKey<FormState>();
+  TextEditingController _emailTextController = TextEditingController();
+  TextEditingController _passwordTextController = TextEditingController();
 
-  Future<FirebaseUser> _sigIn(BuildContext context) async {
-    Scaffold.of(context).showSnackBar(new SnackBar(
-      content: Text("Sign in"),
-    ));
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
+  SharedPreferences prefs;
+
+  bool isLoading = false;
+  bool isLoggedIn = false;
+  FirebaseUser currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    isSignedIn();
+  }
+
+  void isSignedIn() async {
+    this.setState(() {
+      isLoading = true;
+    });
+
+    prefs = await SharedPreferences.getInstance();
+
+    isLoggedIn = await _googleSignIn.isSignedIn();
+    if (isLoggedIn) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CriarConta()));
+    }
+
+    this.setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<FirebaseUser> _handleSignIn() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 
     final AuthCredential credential = GoogleAuthProvider.getCredential(
-        accessToken: googleAuth.accessToken, idToken: googleAuth.idToken,);
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
 
-    AuthResult userDetails =await _firebaseAuth.signInWithCredential(credential);
+    final FirebaseUser firebaseUser =
+        (await firebaseAuth.signInWithCredential(credential)).user;
+    print("signed in " + firebaseUser.displayName);
 
-  }
+    if (firebaseUser != null) {
+      // Check is already sign up
+      final QuerySnapshot result = await Firestore.instance
+          .collection('users')
+          .where('id', isEqualTo: firebaseUser.uid)
+          .getDocuments();
+      final List<DocumentSnapshot> documents = result.documents;
+      if (documents.length == 0) {
+        // Update data to server if new user
+        Firestore.instance
+            .collection('users')
+            .document(firebaseUser.uid)
+            .setData({
+          'id': firebaseUser.uid,
+          'nickname': firebaseUser.displayName,
+          'photoUrl': firebaseUser.photoUrl,
+          'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
+        });
 
-  final _formKey = GlobalKey<FormState>();
-  TextEditingController _emailTextController = TextEditingController();
-  TextEditingController _passwordTextController = TextEditingController();
-
-  bool loading = false;
-  bool isLogedin = true;
-
-  @override
-  void initState() {
-    super.initState();
+        // Write data to local
+        currentUser = firebaseUser;
+        await prefs.setString('id', currentUser.uid);
+        await prefs.setString('nickname', currentUser.displayName);
+        await prefs.setString('photoUrl', currentUser.photoUrl);
+      } else {
+        // Write data to local
+        await prefs.setString('id', documents[0]['id']);
+        await prefs.setString('nickname', documents[0]['nickname']);
+        await prefs.setString('photoUrl', documents[0]['photoUrl']);
+      }
+      print("Sign in success");
+      this.setState(() {
+        isLoading = false;
+      });
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CriarConta()));
+    } else {
+      print("Sign in fail");
+      this.setState(() {
+        isLoading = false;
+      });
+    }
+    return firebaseUser;
   }
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height / 3;
     return Scaffold(
       body: SingleChildScrollView(
         child: Stack(
@@ -74,7 +141,6 @@ class _LoginState extends State<Login> {
                                 child: Image.asset(
                                   'assets/cart.png',
                                   width: 120.0,
-//                height: 240.0,
                                 )),
                           ),
                           Padding(
@@ -185,7 +251,9 @@ class _LoginState extends State<Login> {
                                 Padding(
                                   padding: const EdgeInsets.all(2.0),
                                   child: MaterialButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        _handleSignIn();
+                                      },
                                       child: Image.asset(
                                         "assets/ggg.png",
                                         width: 30,
@@ -199,37 +267,21 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
-            Visibility(
-              visible: loading ?? true,
-              child: Center(
-                child: Container(
-                  alignment: Alignment.center,
-                  color: Colors.white.withOpacity(0.9),
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                  ),
-                ),
-              ),
-            )
+            Positioned(
+              child: isLoading
+                  ? Container(
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                        ),
+                      ),
+                      color: Colors.white.withOpacity(0.8),
+                    )
+                  : Container(),
+            ),
           ],
         ),
       ),
     );
   }
-}
-
-class UserDetails {
-  final String providerDetails;
-  final String userName;
-  final String photoUrl;
-  final String userEmail;
-  final List<ProviderDetails> providerData;
-
-  UserDetails(this.providerDetails, this.userName, this.photoUrl,
-      this.userEmail, this.providerData);
-}
-
-class ProviderDetails {
-  ProviderDetails(this.providerDetails);
-  final String providerDetails;
 }
