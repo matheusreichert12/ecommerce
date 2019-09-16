@@ -15,38 +15,11 @@ class _LoginState extends State<Login> {
   TextEditingController _emailTextController = TextEditingController();
   TextEditingController _passwordTextController = TextEditingController();
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-
-  SharedPreferences prefs;
-
   bool isLoading = false;
   bool isLoggedIn = false;
-  FirebaseUser currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    isSignedIn();
-  }
-
-  void isSignedIn() async {
-    this.setState(() {
-      isLoading = true;
-    });
-
-    prefs = await SharedPreferences.getInstance();
-
-    isLoggedIn = await _googleSignIn.isSignedIn();
-    if (isLoggedIn) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CriarConta()));
-    }
-
-    this.setState(() {
-      isLoading = false;
-    });
-  }
+/*
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<FirebaseUser> _handleSignIn() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
@@ -58,54 +31,11 @@ class _LoginState extends State<Login> {
       idToken: googleAuth.idToken,
     );
 
-    final FirebaseUser firebaseUser =
-        (await firebaseAuth.signInWithCredential(credential)).user;
-    print("signed in " + firebaseUser.displayName);
-
-    if (firebaseUser != null) {
-      // Check is already sign up
-      final QuerySnapshot result = await Firestore.instance
-          .collection('users')
-          .where('id', isEqualTo: firebaseUser.uid)
-          .getDocuments();
-      final List<DocumentSnapshot> documents = result.documents;
-      if (documents.length == 0) {
-        // Update data to server if new user
-        Firestore.instance
-            .collection('users')
-            .document(firebaseUser.uid)
-            .setData({
-          'id': firebaseUser.uid,
-          'nickname': firebaseUser.displayName,
-          'photoUrl': firebaseUser.photoUrl,
-          'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
-        });
-
-        // Write data to local
-        currentUser = firebaseUser;
-        await prefs.setString('id', currentUser.uid);
-        await prefs.setString('nickname', currentUser.displayName);
-        await prefs.setString('photoUrl', currentUser.photoUrl);
-      } else {
-        // Write data to local
-        await prefs.setString('id', documents[0]['id']);
-        await prefs.setString('nickname', documents[0]['nickname']);
-        await prefs.setString('photoUrl', documents[0]['photoUrl']);
-      }
-      print("Sign in success");
-      this.setState(() {
-        isLoading = false;
-      });
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CriarConta()));
-    } else {
-      print("Sign in fail");
-      this.setState(() {
-        isLoading = false;
-      });
-    }
-    return firebaseUser;
-  }
+    final FirebaseUser user =
+        (await _auth.signInWithCredential(credential)).user;
+    print("signed in " + user.displayName);
+    return user;
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +182,7 @@ class _LoginState extends State<Login> {
                                   padding: const EdgeInsets.all(2.0),
                                   child: MaterialButton(
                                       onPressed: () {
-                                        _handleSignIn();
+                                        //_handleSignIn();
                                       },
                                       child: Image.asset(
                                         "assets/ggg.png",
